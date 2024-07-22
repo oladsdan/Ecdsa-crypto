@@ -28,7 +28,7 @@ function Wallet({ privateKey, setPrivateKey, balance, setBalance }) {
     const publicKey = await secp256k1.getPublicKey(privateKey);
     setAddressPub(toHex(publicKey))
     
-    console.log("publickey", toHex(publicKey))
+    
 
 
     if (addressPub) {
