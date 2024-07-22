@@ -1,0 +1,77 @@
+import { useState } from "react";
+import server from "./server";
+import signMessage from "./utils/signTransaction";
+import { toHex, utf8ToBytes } from "ethereum-cryptography/utils";
+
+function Transfer({ privateKey, setBalance }) {
+  const [sendAmount, setSendAmount] = useState("");
+  const [recipient, setRecipient] = useState("");
+
+  const setValue = (setter) => (evt) => setter(evt.target.value);
+
+
+  
+  async function transfer(evt) {
+    evt.preventDefault();
+
+    
+  const tx = JSON.stringify({
+    amount: parseInt(sendAmount),
+    recipient
+  })
+
+  const {r, s, recovery} = await signMessage(tx, privateKey);
+  console.log(r, s , recovery);
+  const signature = await signMessage(tx, privateKey);
+  const rBytes = BigInt(r).toString();
+  const sBytes = BigInt(s).toString();
+  console.log(signature);
+
+
+    try {
+      const {
+        data: { balance, message },
+      } = await server.post(`send`, {
+        sender: privateKey,
+        amount: parseInt(sendAmount),
+        recipient,
+        rBytes,
+        sBytes,
+        recovery,
+        
+      });
+      setBalance(balance);
+      alert(message);
+    } catch (ex) {
+      alert(ex.response.data.message);
+    }
+  }
+
+  return (
+    <form className="container transfer" onSubmit={transfer}>
+      <h1>Send Transaction</h1>
+
+      <label>
+        Send Amount
+        <input
+          placeholder="1, 2, 3..."
+          value={sendAmount}
+          onChange={setValue(setSendAmount)}
+        ></input>
+      </label>
+
+      <label>
+        Recipient
+        <input
+          placeholder="Type an address, for example: 0x2"
+          value={recipient}
+          onChange={setValue(setRecipient)}
+        ></input>
+      </label>
+
+      <input type="submit" className="button" value="Transfer" />
+    </form>
+  );
+}
+
+export default Transfer;
